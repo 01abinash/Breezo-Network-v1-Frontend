@@ -19,7 +19,6 @@ export const mapNodeToDevice = (node) => ({
     pm25: node.pm25,
     temperature: node.temperature,
     humidity: 0,
-    pressure: 0,
     mq135: 0,
   },
 });

@@ -4,7 +4,6 @@ const METRICS = [
   { key: 'pm25', label: 'Fine particle', unit: 'ug/m3', color: '#38BDF8', max: 150, note: 'Primary AQI input from your particulate sensor.' },
   { key: 'temperature', label: 'Temperature', unit: 'C', color: '#FB923C', max: 50, note: 'Ambient temperature from DHT22.' },
   { key: 'humidity', label: 'Humidity', unit: '% RH', color: '#2DD4BF', max: 100, note: 'Relative humidity from DHT22.' },
-  { key: 'pressure', label: 'Pressure', unit: 'hPa', color: '#A78BFA', max: 1200, note: 'Atmospheric pressure from BMP180.' },
   { key: 'mq135', label: 'CO2', unit: 'raw/ppm', color: '#FCD34D', max: 1000, note: 'Gas sensor signal for your backend calibration logic.' },
 ]
 

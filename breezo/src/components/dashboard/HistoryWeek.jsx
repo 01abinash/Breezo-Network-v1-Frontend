@@ -43,10 +43,6 @@ export default function HistoryWeek({ history }) {
                 <strong>{item.humidity.toFixed(1)} %</strong>
               </div>
               <div className={styles.sensorItem}>
-                <span>BMP</span>
-                <strong>{item.pressure.toFixed(1)}</strong>
-              </div>
-              <div className={styles.sensorItem}>
                 <span>CO2</span>
                 <strong>{item.mq135.toFixed(1)}</strong>
               </div>

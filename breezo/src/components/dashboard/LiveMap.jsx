@@ -12,10 +12,33 @@ import 'leaflet/dist/leaflet.css'
 
 import { fetchMapNodes } from '../../services/map.service'
 import { socket } from '../../sockets/socket.client'
+import { CITIES } from '../../lib/aqi'
+import { resolveLocationName } from '../../services/location.service'
 
 import styles from './LiveMap.module.css'
 
 const DEFAULT_CENTER = [27.7007, 85.3001]
+
+function distanceSquared(aLat, aLon, bLat, bLon) {
+  return ((aLat ?? 0) - (bLat ?? 0)) ** 2 + ((aLon ?? 0) - (bLon ?? 0)) ** 2
+}
+
+function getFallbackLocationLabel(lat, lon, nodeId) {
+  if (lat == null || lon == null) return null
+
+  let bestLabel = null
+  let bestDistance = Infinity
+
+  Object.values(CITIES).forEach((city) => {
+    const nextDistance = distanceSquared(lat, lon, city.lat, city.lon)
+    if (nextDistance < bestDistance) {
+      bestDistance = nextDistance
+      bestLabel = city.label
+    }
+  })
+
+  return bestLabel ?? nodeId ?? 'Unknown node'
+}
 
 // 🎨 AQI COLOR
 function getMarkerColor(aqi) {
@@ -28,13 +51,16 @@ function getMarkerColor(aqi) {
 }
 
 // 🧠 MAP TRANSFORM
-function mapNodeToDevice(node) {
-  const lat = node.lat ?? node.location?.lat;
-  const lng = node.lng ?? node.location?.lng;
+async function mapNodeToDevice(node) {
+  const lat = node.lat ?? node.location?.lat
+  const lng = node.lng ?? node.location?.lng
+  const fallbackLocationLabel = getFallbackLocationLabel(lat, lng, node.nodeId)
+  const locationLabel = await resolveLocationName(lat, lng, fallbackLocationLabel)
 
   return {
     cityKey: node.nodeId,
-    cityLabel: node.nodeId,
+    cityLabel: locationLabel ?? node.nodeId,
+    nodeId: node.nodeId,
 
     coords: [lat, lng],
 
@@ -49,7 +75,6 @@ function mapNodeToDevice(node) {
       pm25: node.pm25,
       temperature: node.temperature,
       humidity: node.humidity || 0,
-      pressure: 0,
       mq135: 0,
     },
   }
@@ -116,7 +141,7 @@ export default function LiveMap({ mode = 'panel' }) {
   useEffect(() => {
     const load = async () => {
       const res = await fetchMapNodes()
-      const mapped = res.map(mapNodeToDevice)
+      const mapped = await Promise.all(res.map(mapNodeToDevice))
 
       setDevices(mapped)
 
@@ -132,8 +157,8 @@ export default function LiveMap({ mode = 'panel' }) {
   useEffect(() => {
     socket.connect()
 
-    socket.on('node:update', (node) => {
-      const updated = mapNodeToDevice(node)
+    socket.on('node:update', async (node) => {
+      const updated = await mapNodeToDevice(node)
 
       setDevices((prev) => {
         const idx = prev.findIndex((d) => d.cityKey === updated.cityKey)
@@ -207,10 +232,6 @@ export default function LiveMap({ mode = 'panel' }) {
                   <strong>{selectedDevice.telemetry.humidity?.toFixed(1)} %</strong>
                 </div>
                 <div className={styles.overlayItem}>
-                  <span>Pressure</span>
-                  <strong>{selectedDevice.telemetry.pressure?.toFixed(1)} hPa</strong>
-                </div>
-                <div className={styles.overlayItem}>
                   <span>CO2</span>
                   <strong>{selectedDevice.telemetry.mq135?.toFixed(1)}</strong>
                 </div>
@@ -263,10 +284,6 @@ export default function LiveMap({ mode = 'panel' }) {
                           <strong>{device.telemetry.humidity?.toFixed(1)} %</strong>
                         </div>
                         <div className={styles.popupItem}>
-                          <span>Pressure</span>
-                          <strong>{device.telemetry.pressure?.toFixed(1)} hPa</strong>
-                        </div>
-                        <div className={styles.popupItem}>
                           <span>MQ135</span>
                           <strong>{device.telemetry.mq135?.toFixed(1)}</strong>
                         </div>
@@ -312,7 +329,7 @@ export default function LiveMap({ mode = 'panel' }) {
                     <div className={styles.nodeTop}>
                       <div>
                         <div className={styles.nodeCity}>{device.cityLabel}</div>
-                        <div className={styles.nodeId}>{device.cityKey.toUpperCase()} · AQI {device.aqi}</div>
+                        <div className={styles.nodeId}>{(device.nodeId ?? device.cityKey).toUpperCase()} · AQI {device.aqi}</div>
                       </div>
                       <span className={`${styles.statusPill} ${online ? styles.online : styles.offline}`}>
                         {online ? 'Online' : 'Offline'}
@@ -361,10 +378,6 @@ export default function LiveMap({ mode = 'panel' }) {
                   <div className={styles.detailItem}>
                     <span>Humidity</span>
                     <strong>{selectedDevice.telemetry.humidity?.toFixed(1)} %</strong>
-                  </div>
-                  <div className={styles.detailItem}>
-                    <span>Pressure</span>
-                    <strong>{selectedDevice.telemetry.pressure?.toFixed(1)} hPa</strong>
                   </div>
                   <div className={styles.detailItem}>
                     <span>MQ135</span>

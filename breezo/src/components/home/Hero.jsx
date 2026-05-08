@@ -1,18 +1,29 @@
 import { useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { useMultiCityAQI } from '../../hooks/useAirQuality'
+import { useLiveNodeAQI, useMultiCityAQI } from '../../hooks/useAirQuality'
 import { getActiveDeviceCityKeys } from '../../lib/tokenizationApi'
 import { Chip, LivePill } from '../ui/UI'
 import styles from './Hero.module.css'
 
-const CITY_LABELS = { ktm: 'Kathmandu', patan: 'Patan', del: 'Delhi' }
+const CITY_LABELS = { ktm: 'Kathmandu', patan: 'Patan', jawa: 'Jawalakhel', del: 'Delhi' }
+
+function formatHeroMetric(item) {
+  if (item.type === 'gps') {
+    if (!item.value?.lat || !item.value?.lon) return 'device feed'
+    return `${item.value.lat.toFixed(2)}, ${item.value.lon.toFixed(2)}`
+  }
+
+  if (item.value == null || Number.isNaN(Number(item.value))) return 'device feed'
+  return `${Number(item.value).toFixed(1)}${item.suffix ?? ''}`
+}
 
 function AQICell({ cityKey, data }) {
   const info = data?.info
+  const cityLabel = data?.locationLabel ?? CITY_LABELS[cityKey] ?? cityKey.toUpperCase()
 
   return (
     <div className={styles.cityCell}>
-      <div className={styles.cityName}>{CITY_LABELS[cityKey] ?? cityKey.toUpperCase()}</div>
+      <div className={styles.cityName}>{cityLabel}</div>
       {data ? (
         <>
           <div className={styles.cityAQI} style={{ color: info.color }}>
@@ -42,7 +53,6 @@ function NetworkCanvas() {
       { label: 'Fine particle', r: 80, angle: 0.3, speed: 0.0008 },
       { label: 'DHT22', r: 80, angle: 1.8, speed: 0.0008 },
       { label: 'CO2', r: 120, angle: 0.9, speed: 0.0005 },
-      { label: 'BMP', r: 60, angle: 4.2, speed: 0.0012 },
       { label: 'GPS', r: 100, angle: 3.5, speed: 0.0007 },
       { label: 'API', r: 90, angle: 5.8, speed: 0.0009 },
     ]
@@ -127,10 +137,14 @@ function NetworkCanvas() {
 
 export default function Hero() {
   const navigate = useNavigate()
-  const heroCities = getActiveDeviceCityKeys()
+  const fallbackHeroCities = getActiveDeviceCityKeys()
+  const liveNodes = useLiveNodeAQI()
+  const heroCities = liveNodes.length ? [] : fallbackHeroCities
   const cityData = useMultiCityAQI(heroCities)
-  const leadKey = heroCities[0]
-  const leadCity = cityData[leadKey]
+  const heroItems = liveNodes.length
+    ? liveNodes.map((node) => ({ key: node.key, data: node }))
+    : heroCities.map((key) => ({ key, data: cityData[key] }))
+  const leadCity = heroItems.find((item) => item.data)?.data
 
   return (
     <section className={styles.hero}>
@@ -172,8 +186,8 @@ export default function Hero() {
           </div>
 
           <div className={styles.cityGrid}>
-            {heroCities.map((key) => (
-              <AQICell key={key} cityKey={key} data={cityData[key]} />
+            {heroItems.map(({ key, data }) => (
+              <AQICell key={key} cityKey={key} data={data} />
             ))}
           </div>
 
@@ -181,12 +195,13 @@ export default function Hero() {
             {[
               { label: 'Fine particle', value: leadCity?.pm25 },
               { label: 'AQI', value: leadCity?.aqi },
-              { label: 'DHT22', value: null },
-              { label: 'CO2', value: null },
-              { label: 'GPS', value: null },
+              { label: 'Temperature', value: leadCity?.temperature, suffix: 'C' },
+              { label: 'Humidity', value: leadCity?.humidity, suffix: '%' },
+              { label: 'CO2', value: leadCity?.mq135 },
+              { label: 'GPS', value: leadCity?.gps, type: 'gps' },
             ].map((item) => (
               <div className={styles.pChip} key={item.label}>
-                <span className={styles.pVal}>{item.value != null ? item.value.toFixed(1) : 'device feed'}</span>
+                <span className={styles.pVal}>{formatHeroMetric(item)}</span>
                 <span className={styles.pName}>{item.label}</span>
               </div>
             ))}

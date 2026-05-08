@@ -227,6 +227,47 @@
   cursor: wait;
 }
 
+/* Override Solana wallet-adapter button to match .primaryBtn.
+   The library drops the className prop, so we put our class on a WRAPPER
+   and target the button as a descendant. !important wins over the library
+   stylesheet's own selectors. */
+.walletBtnWrap :global(.wallet-adapter-button) {
+  min-height: 40px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 0 18px !important;
+  border-radius: 999px !important;
+  font: 700 11px/1 var(--mono) !important;
+  letter-spacing: 0.04em !important;
+  border: 1px solid transparent !important;
+  background:
+    linear-gradient(135deg, rgba(56, 189, 248, 1), rgba(34, 211, 238, 0.92)) !important;
+  color: #03141b !important;
+  cursor: pointer !important;
+  box-shadow: 0 12px 34px rgba(14, 165, 233, 0.24) !important;
+  transition: transform 0.2s ease, box-shadow 0.2s ease !important;
+  height: auto !important;
+  line-height: 1 !important;
+}
+
+.walletBtnWrap :global(.wallet-adapter-button:hover:not([disabled])) {
+  background:
+    linear-gradient(135deg, rgba(125, 211, 252, 1), rgba(56, 189, 248, 0.95)) !important;
+  transform: translateY(-1px);
+  box-shadow: 0 14px 36px rgba(14, 165, 233, 0.32) !important;
+}
+
+.walletBtnWrap :global(.wallet-adapter-button:focus-visible) {
+  outline: 2px solid #38bdf8 !important;
+  outline-offset: 3px !important;
+}
+
+.walletBtnWrap :global(.wallet-adapter-button-start-icon),
+.walletBtnWrap :global(.wallet-adapter-button-end-icon) {
+  margin-right: 8px !important;
+}
+
 .actionStack,
 .contextStack {
   display: grid;

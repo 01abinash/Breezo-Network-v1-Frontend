@@ -9,7 +9,7 @@ import {
   Cell,
   ReferenceLine,
 } from 'recharts'
-import { useMultiCityAQI } from '../../hooks/useAirQuality'
+import { useLiveNodeAQI, useMultiCityAQI } from '../../hooks/useAirQuality'
 import { getActiveDeviceCityKeys } from '../../lib/tokenizationApi'
 import { CITIES } from '../../lib/aqi'
 import styles from './CityCompareChart.module.css'
@@ -27,14 +27,24 @@ function CustomTooltip({ active, payload }) {
 }
 
 export default function CityCompareChart() {
-  const cityKeys = getActiveDeviceCityKeys()
+  const fallbackCityKeys = getActiveDeviceCityKeys()
+  const liveNodes = useLiveNodeAQI()
+  const cityKeys = liveNodes.length ? [] : fallbackCityKeys
   const cityData = useMultiCityAQI(cityKeys)
 
-  const chartData = cityKeys.map((key) => {
+  const chartData = liveNodes.length ? liveNodes.map((d) => ({
+    city: (d.locationLabel ?? d.nodeId ?? 'NODE').slice(0, 3).toUpperCase(),
+    fullName: d.locationLabel ?? d.nodeId ?? 'Live node',
+    aqi: d.aqi ?? 0,
+    color: d.info?.color ?? '#475569',
+    status: d.info?.label ?? '—',
+  })) : cityKeys.map((key) => {
     const d = cityData[key]
+    const locationLabel = d?.locationLabel ?? CITIES[key]?.label ?? key.toUpperCase()
+
     return {
-      city: CITIES[key].label.slice(0, 3).toUpperCase(),
-      fullName: CITIES[key].label,
+      city: locationLabel.slice(0, 3).toUpperCase(),
+      fullName: locationLabel,
       aqi: d?.aqi ?? 0,
       color: d?.info?.color ?? '#475569',
       status: d?.info?.label ?? '—',
@@ -44,8 +54,8 @@ export default function CityCompareChart() {
   return (
     <div className={styles.panel}>
       <div className={styles.header}>
-        <h3 className={styles.title}>Device City Comparison — Live AQI</h3>
-        <span className={styles.badge}>{cityKeys.length} cities</span>
+        <h3 className={styles.title}>Device Location Comparison — Live AQI</h3>
+        <span className={styles.badge}>{chartData.length} devices</span>
       </div>
 
       <ResponsiveContainer width="100%" height={220}>
@@ -76,8 +86,8 @@ export default function CityCompareChart() {
             label={{ value: 'Unhealthy', fill: '#F87171', fontSize: 9, fontFamily: 'DM Mono', position: 'insideTopRight' }}
           />
           <Bar dataKey="aqi" radius={[4, 4, 0, 0]} maxBarSize={48}>
-            {chartData.map((entry, i) => (
-              <Cell key={i} fill={entry.color} fillOpacity={0.8} />
+            {chartData.map((entry, index) => (
+              <Cell key={index} fill={entry.color} fillOpacity={0.8} />
             ))}
           </Bar>
         </BarChart>

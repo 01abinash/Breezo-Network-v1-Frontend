@@ -379,7 +379,9 @@ function BuyCreditsModal({ plan, onClose, authToken }) {
                 <p className={styles.pricingDetail} style={{ marginBottom: 16 }}>
                   Connect your wallet to purchase
                 </p>
-                <WalletMultiButton />
+                <div className={styles.walletBtnWrap}>
+                  <WalletMultiButton />
+                </div>
               </div>
             ) : (
               <>

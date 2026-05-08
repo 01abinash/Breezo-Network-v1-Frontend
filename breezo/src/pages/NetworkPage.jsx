@@ -9,7 +9,6 @@ const SENSOR_SPECS = [
   { param: 'NO₂',              method: 'Electrochemical',      range: '0–10 ppm',      accuracy: '±5%' },
   { param: 'Temperature',      method: 'Thermistor (SHT31)',   range: '-40–85°C',      accuracy: '±0.3°C' },
   { param: 'Humidity',         method: 'Capacitive (SHT31)',   range: '0–100% RH',     accuracy: '±2% RH' },
-  { param: 'Atm. Pressure',    method: 'Piezo (BMP180)',       range: '300–1100 hPa',  accuracy: '±1 hPa' },
 ]
 
 const REWARD_TIERS = [

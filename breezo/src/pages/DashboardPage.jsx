@@ -37,7 +37,6 @@ export default function DashboardPage() {
         const avgPm25 = average('pm25')
         const avgTemperature = average('temperature')
         const avgHumidity = average('humidity')
-        const avgPressure = average('pressure')
         const avgMq135 = average('mq135')
         const avgLat =
           networkEntries.reduce((sum, item) => sum + (item.gps?.lat ?? 0), 0) / networkEntries.length
@@ -49,7 +48,6 @@ export default function DashboardPage() {
           pm25: avgPm25,
           temperature: avgTemperature,
           humidity: avgHumidity,
-          pressure: avgPressure,
           mq135: avgMq135,
           gps: {
             lat: avgLat,

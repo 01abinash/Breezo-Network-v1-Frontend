@@ -7,7 +7,7 @@ const STEPS = [
     num: '01',
     icon: 'Sensor',
     title: 'Deploy & Monitor',
-    desc: 'Install BREEZO devices built around Fine particle, DHT22, CO2, BMP180, and GPS modules for continuous local air monitoring.',
+    desc: 'Install BREEZO devices built around Fine particle, DHT22, CO2, and GPS modules for continuous local air monitoring.',
   },
   {
     num: '02',
@@ -19,7 +19,7 @@ const STEPS = [
     num: '03',
     icon: 'AQI',
     title: 'Analyze & Visualize',
-    desc: 'Fine particle readings are converted into AQI, combined with temperature, humidity, atmospheric pressure, and GPS context, then shown city by city.',
+    desc: 'Fine particle readings are converted into AQI, combined with temperature, humidity, and GPS context, then shown city by city.',
   },
   {
     num: '04',

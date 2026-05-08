@@ -17,7 +17,6 @@ const DEFAULT_ACCOUNT = {
         temperature: 28.5,
         humidity: 62.3,
         pm25: 42.0,
-        bmp: 1008.6,
         aqi: 112,
         aqiLevel: 'MODERATE',
         reward: 3.14,
